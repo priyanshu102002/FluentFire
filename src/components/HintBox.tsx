@@ -23,7 +23,7 @@ export function HintBox({ answer, hintLevel, onGetHint }: HintBoxProps) {
       {canGetHint && hintLevel === 0 && (
         <button
           onClick={onGetHint}
-          className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors"
+          className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors cursor-pointer"
         >
           Need a hint?
         </button>
@@ -45,7 +45,7 @@ export function HintBox({ answer, hintLevel, onGetHint }: HintBoxProps) {
       {canGetHint && hintLevel > 0 && (
         <button
           onClick={onGetHint}
-          className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors"
+          className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors cursor-pointer"
         >
           More hint
         </button>

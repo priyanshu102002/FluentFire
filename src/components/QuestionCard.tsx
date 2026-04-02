@@ -95,7 +95,7 @@ export function QuestionCard({ question, onCorrect }: QuestionCardProps) {
         <button
           type="submit"
           disabled={status === 'correct' || !input.trim()}
-          className="text-sm font-medium text-zinc-500 hover:text-zinc-300 transition-colors disabled:opacity-0"
+          className="text-sm font-medium text-zinc-500 hover:text-zinc-300 transition-colors disabled:opacity-0 cursor-pointer"
         >
           Submit ↵
         </button>

@@ -94,7 +94,7 @@ export default function ChallengePage() {
           </div>
           <button
             onClick={() => router.push('/dashboard')}
-            className="w-full bg-zinc-100 text-zinc-900 py-3.5 rounded-lg text-sm font-medium hover:bg-white transition-colors"
+            className="w-full bg-zinc-100 text-zinc-900 py-3.5 rounded-lg text-sm font-medium hover:bg-white transition-colors cursor-pointer"
           >
             Return Home
           </button>
@@ -120,7 +120,7 @@ export default function ChallengePage() {
         <div className="w-24 flex justify-end">
           <button 
             onClick={() => router.push('/dashboard')}
-            className="text-sm text-zinc-600 hover:text-zinc-300 transition-colors"
+            className="text-sm text-zinc-600 hover:text-zinc-300 transition-colors cursor-pointer"
           >
             Cancel
           </button>

@@ -31,7 +31,7 @@ export default function Home() {
           <p className="text-red-500 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded"
+            className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded cursor-pointer"
           >
             Reload Page
           </button>
