@@ -7,6 +7,7 @@ export interface UserProfile {
   email: string;
   streak: number;
   lastCompletedDate?: string;
+  solvedQuestions?: string[];
 }
 
 export async function GET(request: NextRequest) {
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
     await setDoc(docRef, {
       email,
       streak: 0,
+      solvedQuestions: [],
     });
 
     return NextResponse.json({ success: true });

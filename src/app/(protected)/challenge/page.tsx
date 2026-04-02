@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { getDailyQuestions, Question } from '@/lib/questions';
+import { getDailyQuestionsFromAPI, Question } from '@/lib/questions-client';
 import { getDailyProgress, initializeDailyProgress, updateProgress } from '@/lib/progress-client';
 import { getUserProfile, updateUserStreak } from '@/lib/user-client';
 import { QuestionCard } from '@/components/QuestionCard';
@@ -29,7 +29,7 @@ export default function ChallengePage() {
         const userProfile = await getUserProfile(user.uid);
         setProfile(userProfile);
 
-        const dailyQuestions = getDailyQuestions();
+        const dailyQuestions = await getDailyQuestionsFromAPI(user.uid);
         setQuestions(dailyQuestions);
 
         let progress = await getDailyProgress(user.uid);
@@ -55,11 +55,13 @@ export default function ChallengePage() {
   const handleCorrectAnswer = async () => {
     if (!user) return;
 
+    const currentQuestion = questions[currentIndex];
     const nextIndex = currentIndex + 1;
     const isFinished = nextIndex >= questions.length;
 
     try {
-      await updateProgress(user.uid, nextIndex, isFinished);
+      // Pass the questionId when marking as solved
+      await updateProgress(user.uid, nextIndex, isFinished, currentQuestion.id);
       
       if (isFinished) {
         await updateUserStreak(user.uid, true);

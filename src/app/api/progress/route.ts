@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { format } from 'date-fns';
 
@@ -8,6 +8,7 @@ export interface DailyProgress {
   date: string;
   currentQuestionIndex: number;
   completed: boolean;
+  solvedQuestionIds?: string[];
 }
 
 export async function GET(request: NextRequest) {
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, currentQuestionIndex, completed } = body;
+    const { userId, currentQuestionIndex, completed, questionId } = body;
 
     if (!userId || currentQuestionIndex === undefined || completed === undefined) {
       return NextResponse.json({ error: 'userId, currentQuestionIndex, and completed are required' }, { status: 400 });
@@ -75,12 +76,30 @@ export async function PUT(request: NextRequest) {
 
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const progressId = `${userId}_${todayStr}`;
-    const docRef = doc(db, 'daily_progress', progressId);
+    const progressDocRef = doc(db, 'daily_progress', progressId);
     
-    await updateDoc(docRef, {
+    await updateDoc(progressDocRef, {
       currentQuestionIndex,
       completed,
     });
+
+    // If questionId is provided, add it to the user's solved questions
+    if (questionId) {
+      const userDocRef = doc(db, 'users', userId);
+      const userDocSnap = await getDoc(userDocRef);
+      
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        const solvedQuestions = userData.solvedQuestions || [];
+        
+        // Only add if not already solved
+        if (!solvedQuestions.includes(questionId)) {
+          await updateDoc(userDocRef, {
+            solvedQuestions: arrayUnion(questionId),
+          });
+        }
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

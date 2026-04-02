@@ -1,53 +1,69 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface HintBoxProps {
-  answer: string;
+  questionId: string;
   hintLevel: number;
   onGetHint: () => void;
 }
 
-export function HintBox({ answer, hintLevel, onGetHint }: HintBoxProps) {
-  const getHintString = () => {
-    if (hintLevel === 0) return '';
-    return answer.slice(0, hintLevel) + "_".repeat(answer.length - hintLevel);
-  };
+export function HintBox({ questionId, hintLevel, onGetHint }: HintBoxProps) {
+  const [hint, setHint] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const maxHints = answer.length;
-  const canGetHint = hintLevel < maxHints && hintLevel < 5;
+  const maxHints = 5; // Maximum hint level
+  const canGetHint = hintLevel < maxHints;
+
+  const handleGetHint = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/hint?questionId=${questionId}&hintLevel=${hintLevel + 1}`);
+      const data = await response.json();
+      if (data.hint) {
+        setHint(data.hint);
+        onGetHint();
+      }
+    } catch (error) {
+      console.error('Error fetching hint:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col items-center justify-center space-y-3 h-16">
       {canGetHint && hintLevel === 0 && (
         <button
-          onClick={onGetHint}
-          className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors cursor-pointer"
+          onClick={handleGetHint}
+          disabled={loading}
+          className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors cursor-pointer disabled:opacity-50"
         >
-          Need a hint?
+          {loading ? 'Loading...' : 'Need a hint?'}
         </button>
       )}
       
       <AnimatePresence mode="wait">
-        {hintLevel > 0 && (
+        {hintLevel > 0 && hint && (
           <motion.div
             key={hintLevel}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-zinc-500 font-mono text-sm tracking-[0.2em]"
           >
-            {getHintString()}
+            {hint}
           </motion.div>
         )}
       </AnimatePresence>
 
       {canGetHint && hintLevel > 0 && (
         <button
-          onClick={onGetHint}
-          className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors cursor-pointer"
+          onClick={handleGetHint}
+          disabled={loading}
+          className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors cursor-pointer disabled:opacity-50"
         >
-          More hint
+          {loading ? 'Loading...' : 'More hint'}
         </button>
       )}
     </div>

@@ -13,8 +13,28 @@ interface QuestionCardProps {
 export function QuestionCard({ question, onCorrect }: QuestionCardProps) {
   const [input, setInput] = useState('');
   const [hintLevel, setHintLevel] = useState(0);
-  const [status, setStatus] = useState<'idle' | 'correct' | 'incorrect'>('idle');
+  const [status, setStatus] = useState<'idle' | 'correct' | 'incorrect' | 'checking'>('idle');
+  const [answerLength, setAnswerLength] = useState(0);
+  const [loadingLength, setLoadingLength] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch answer length on question change
+  useEffect(() => {
+    const fetchAnswerLength = async () => {
+      try {
+        const response = await fetch(`/api/answer-length?questionId=${question.id}`);
+        const data = await response.json();
+        setAnswerLength(data.length || 0);
+      } catch (error) {
+        console.error('Error fetching answer length:', error);
+        setAnswerLength(0);
+      } finally {
+        setLoadingLength(false);
+      }
+    };
+
+    fetchAnswerLength();
+  }, [question.id]);
 
   useEffect(() => {
     setInput('');
@@ -33,22 +53,44 @@ export function QuestionCard({ question, onCorrect }: QuestionCardProps) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
       e.preventDefault();
-      setHintLevel(prev => prev + 1);
+      setHintLevel(prev => Math.min(prev + 1, 5));
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || status === 'checking') return;
 
-    const isCorrect = input.trim().toLowerCase() === question.answer.toLowerCase();
-    
-    if (isCorrect) {
-      setStatus('correct');
-      setTimeout(() => {
-        onCorrect();
-      }, 1000);
-    } else {
+    setStatus('checking');
+
+    try {
+      // Validate answer on backend
+      const response = await fetch('/api/validate-answer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          questionId: question.id,
+          userAnswer: input.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.correct) {
+        setStatus('correct');
+        setTimeout(() => {
+          onCorrect();
+        }, 1000);
+      } else {
+        setStatus('incorrect');
+        setTimeout(() => {
+          setStatus('idle');
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error validating answer:', error);
       setStatus('incorrect');
       setTimeout(() => {
         setStatus('idle');
@@ -72,38 +114,52 @@ export function QuestionCard({ question, onCorrect }: QuestionCardProps) {
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col items-center space-y-10">
-        <div className="relative w-full max-w-xs">
+        <div className="relative w-full max-w-xs flex justify-center">
           <input
             ref={inputRef}
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value.slice(0, answerLength))}
             onKeyDown={handleKeyDown}
-            disabled={status === 'correct'}
-            placeholder="Type your answer"
-            className={`w-full bg-transparent border-b-2 px-0 py-3 outline-none transition-all text-center text-xl font-medium placeholder:text-zinc-800
-              ${status === 'idle' ? 'border-zinc-800 text-zinc-100 focus:border-zinc-500' : ''}
-              ${status === 'correct' ? 'border-green-500 text-green-400' : ''}
-              ${status === 'incorrect' ? 'border-red-500 text-red-400' : ''}
-            `}
+            disabled={status === 'correct' || status === 'checking'}
+            maxLength={answerLength}
+            className="absolute opacity-0 w-0 h-0"
             autoFocus
             autoComplete="off"
             spellCheck="false"
           />
+          
+          <div className="flex gap-2 justify-center">
+            {Array.from({ length: answerLength }).map((_, index) => (
+              <div
+                key={index}
+                onClick={() => inputRef.current?.focus()}
+                className={`w-10 h-12 flex items-center justify-center border-2 rounded-md text-lg font-semibold transition-all cursor-text
+                  ${status === 'correct' ? 'border-green-500 bg-green-500/10 text-green-400' : ''}
+                  ${status === 'incorrect' ? 'border-red-500 bg-red-500/10 text-red-400' : ''}
+                  ${status === 'idle' && index < input.length ? 'border-zinc-500 bg-zinc-900/50 text-zinc-100' : ''}
+                  ${status === 'idle' && index >= input.length ? 'border-zinc-700 bg-zinc-950' : ''}
+                  ${status === 'checking' ? 'border-zinc-600 bg-zinc-900/30 text-zinc-400' : ''}
+                `}
+              >
+                {input[index] ? input[index].toUpperCase() : ''}
+              </div>
+            ))}
+          </div>
         </div>
 
         <button
           type="submit"
-          disabled={status === 'correct' || !input.trim()}
+          disabled={status === 'correct' || !input.trim() || status === 'checking'}
           className="text-sm font-medium text-zinc-500 hover:text-zinc-300 transition-colors disabled:opacity-0 cursor-pointer"
         >
-          Submit ↵
+          {status === 'checking' ? 'Checking...' : 'Submit ↵'}
         </button>
 
         <HintBox 
-          answer={question.answer} 
+          questionId={question.id}
           hintLevel={hintLevel}
-          onGetHint={() => setHintLevel(prev => prev + 1)}
+          onGetHint={() => setHintLevel(prev => Math.min(prev + 1, 5))}
         />
       </form>
     </motion.div>

@@ -33,14 +33,14 @@ export const initializeDailyProgress = async (userId: string): Promise<DailyProg
   }
 };
 
-export const updateProgress = async (userId: string, currentQuestionIndex: number, completed: boolean): Promise<void> => {
+export const updateProgress = async (userId: string, currentQuestionIndex: number, completed: boolean, questionId?: string): Promise<void> => {
   try {
     const response = await fetch('/api/progress', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ userId, currentQuestionIndex, completed }),
+      body: JSON.stringify({ userId, currentQuestionIndex, completed, questionId }),
     });
     
     if (!response.ok) {
