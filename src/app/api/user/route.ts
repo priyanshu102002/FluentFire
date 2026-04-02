@@ -27,7 +27,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(null);
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    return NextResponse.json({ error: 'Failed to fetch user profile' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to fetch user profile', details: errorMessage }, { status: 500 });
   }
 }
 
@@ -49,7 +50,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error creating user profile:', error);
-    return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to create user profile', details: errorMessage }, { status: 500 });
   }
 }
 
@@ -98,6 +100,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: true, streak: newStreak });
   } catch (error) {
     console.error('Error updating user streak:', error);
-    return NextResponse.json({ error: 'Failed to update user streak' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to update user streak', details: errorMessage }, { status: 500 });
   }
 }

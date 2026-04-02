@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(null);
   } catch (error) {
     console.error('Error fetching daily progress:', error);
-    return NextResponse.json({ error: 'Failed to fetch daily progress' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to fetch daily progress', details: errorMessage }, { status: 500 });
   }
 }
 
@@ -58,7 +59,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(newProgress);
   } catch (error) {
     console.error('Error initializing daily progress:', error);
-    return NextResponse.json({ error: 'Failed to initialize daily progress' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to initialize daily progress', details: errorMessage }, { status: 500 });
   }
 }
 
@@ -83,6 +85,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error updating progress:', error);
-    return NextResponse.json({ error: 'Failed to update progress' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to update progress', details: errorMessage }, { status: 500 });
   }
 }

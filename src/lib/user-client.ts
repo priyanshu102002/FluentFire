@@ -1,5 +1,8 @@
 import { UserProfile } from '@/app/api/user/route';
 
+// Re-export UserProfile for use in client components
+export type { UserProfile };
+
 export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
   try {
     const response = await fetch(`/api/user?userId=${userId}`);

@@ -19,11 +19,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    try {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setUser(user);
+        setLoading(false);
+      });
+      return unsubscribe;
+    } catch (error) {
+      console.error('Firebase auth error:', error);
       setLoading(false);
-    });
-    return unsubscribe;
+    }
   }, []);
 
   const signInWithGoogle = async () => {
