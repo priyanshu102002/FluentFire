@@ -1,12 +1,15 @@
 export interface Question {
   id: string;
   sentence: string;
-  answer: string;
+  answerLength: number;
 }
 
 export const getDailyQuestionsFromAPI = async (userId: string): Promise<Question[]> => {
   try {
-    const response = await fetch(`/api/questions?userId=${userId}`);
+    const response = await fetch(`/api/questions?userId=${userId}`, {
+      // Cache the response for 5 seconds to avoid redundant fetches
+      next: { revalidate: 5 }
+    });
     if (!response.ok) {
       throw new Error('Failed to fetch daily questions');
     }

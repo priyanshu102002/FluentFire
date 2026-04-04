@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
     await setDoc(docRef, {
       email,
       streak: 0,
+      lastCompletedDate: null,
       solvedQuestions: [],
     });
 

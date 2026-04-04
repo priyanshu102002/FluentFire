@@ -13,7 +13,7 @@ export default function Home() {
     if (!loading) {
       try {
         if (user) {
-          router.push("/dashboard");
+          router.push("/challenge");
         } else {
           router.push("/login");
         }

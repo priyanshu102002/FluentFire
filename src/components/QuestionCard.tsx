@@ -1,40 +1,27 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Question } from '@/lib/questions';
 import { HintBox } from './HintBox';
 import { motion } from 'framer-motion';
 
 interface QuestionCardProps {
-  question: Question;
+  question: {
+    id: string;
+    sentence: string;
+    answerLength: number;
+  };
   onCorrect: () => void;
+  userId?: string;
+  currentIndex?: number;
+  totalQuestions?: number;
 }
 
-export function QuestionCard({ question, onCorrect }: QuestionCardProps) {
+export function QuestionCard({ question, onCorrect, userId, currentIndex = 0, totalQuestions = 0 }: QuestionCardProps) {
   const [input, setInput] = useState('');
   const [hintLevel, setHintLevel] = useState(0);
   const [status, setStatus] = useState<'idle' | 'correct' | 'incorrect' | 'checking'>('idle');
-  const [answerLength, setAnswerLength] = useState(0);
-  const [loadingLength, setLoadingLength] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Fetch answer length on question change
-  useEffect(() => {
-    const fetchAnswerLength = async () => {
-      try {
-        const response = await fetch(`/api/answer-length?questionId=${question.id}`);
-        const data = await response.json();
-        setAnswerLength(data.length || 0);
-      } catch (error) {
-        console.error('Error fetching answer length:', error);
-        setAnswerLength(0);
-      } finally {
-        setLoadingLength(false);
-      }
-    };
-
-    fetchAnswerLength();
-  }, [question.id]);
+  const answerLength = question.answerLength;
 
   useEffect(() => {
     setInput('');
@@ -64,7 +51,10 @@ export function QuestionCard({ question, onCorrect }: QuestionCardProps) {
     setStatus('checking');
 
     try {
-      // Validate answer on backend
+      const nextIndex = currentIndex + 1;
+      const isFinished = nextIndex >= totalQuestions;
+
+      // Validate answer on backend and update progress in one call
       const response = await fetch('/api/validate-answer', {
         method: 'POST',
         headers: {
@@ -73,6 +63,9 @@ export function QuestionCard({ question, onCorrect }: QuestionCardProps) {
         body: JSON.stringify({
           questionId: question.id,
           userAnswer: input.trim(),
+          userId,
+          currentIndex: nextIndex,
+          isFinished,
         }),
       });
 

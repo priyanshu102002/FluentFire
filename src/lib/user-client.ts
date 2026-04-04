@@ -46,7 +46,9 @@ export const updateUserStreak = async (userId: string, completedAll: boolean): P
     });
     
     if (!response.ok) {
-      throw new Error('Failed to update user streak');
+      const errorData = await response.json();
+      console.error('Error updating user streak - Server response:', errorData);
+      throw new Error(`Failed to update user streak: ${errorData.error || 'Unknown error'}`);
     }
   } catch (error) {
     console.error('Error updating user streak:', error);

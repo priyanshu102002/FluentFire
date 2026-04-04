@@ -11,7 +11,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !loading) {
-      router.push('/dashboard');
+      router.push('/challenge');
     }
   }, [user, loading, router]);
 
@@ -30,9 +30,6 @@ export default function LoginPage() {
           <h1 className="text-3xl font-light tracking-tight text-zinc-100">
             Daily English
           </h1>
-          <p className="text-sm text-zinc-500">
-            Minimal practice for clear communication.
-          </p>
         </div>
 
         <button

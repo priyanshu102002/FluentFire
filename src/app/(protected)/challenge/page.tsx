@@ -4,8 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getDailyQuestionsFromAPI, Question } from '@/lib/questions-client';
-import { getDailyProgress, initializeDailyProgress, updateProgress } from '@/lib/progress-client';
-import { getUserProfile, updateUserStreak } from '@/lib/user-client';
+import { getDailyProgress, initializeDailyProgress } from '@/lib/progress-client';
+import { getUserProfile, updateUserStreak, createUserProfile } from '@/lib/user-client';
 import { QuestionCard } from '@/components/QuestionCard';
 import { ProgressBar } from '@/components/ProgressBar';
 import { motion } from 'framer-motion';
@@ -26,7 +26,14 @@ export default function ChallengePage() {
       if (!user) return;
       
       try {
-        const userProfile = await getUserProfile(user.uid);
+        let userProfile = await getUserProfile(user.uid);
+        
+        // Create profile if it doesn't exist
+        if (!userProfile) {
+          await createUserProfile(user.uid, user.email || '');
+          userProfile = await getUserProfile(user.uid);
+        }
+        
         setProfile(userProfile);
 
         const dailyQuestions = await getDailyQuestionsFromAPI(user.uid);
@@ -52,17 +59,21 @@ export default function ChallengePage() {
     initChallenge();
   }, [user]);
 
+  useEffect(() => {
+    if (completed) {
+      router.push('/countdown');
+    }
+  }, [completed, router]);
+
   const handleCorrectAnswer = async () => {
     if (!user) return;
 
-    const currentQuestion = questions[currentIndex];
     const nextIndex = currentIndex + 1;
     const isFinished = nextIndex >= questions.length;
 
     try {
-      // Pass the questionId when marking as solved
-      await updateProgress(user.uid, nextIndex, isFinished, currentQuestion.id);
-      
+      // Progress is already updated by validate-answer endpoint
+      // Just handle the completion flow
       if (isFinished) {
         await updateUserStreak(user.uid, true);
         setCompleted(true);
@@ -70,7 +81,7 @@ export default function ChallengePage() {
         setCurrentIndex(nextIndex);
       }
     } catch (error) {
-      console.error("Error updating progress", error);
+      console.error("Error updating challenge state", error);
     }
   };
 
@@ -84,23 +95,8 @@ export default function ChallengePage() {
 
   if (completed) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 text-center">
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-8 max-w-sm w-full"
-        >
-          <div className="space-y-2">
-            <h2 className="text-2xl font-light text-zinc-100">Well done.</h2>
-            <p className="text-sm text-zinc-500">You've completed today's practice.</p>
-          </div>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="w-full bg-zinc-100 text-zinc-900 py-3.5 rounded-lg text-sm font-medium hover:bg-white transition-colors cursor-pointer"
-          >
-            Return Home
-          </button>
-        </motion.div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-2 h-2 rounded-full bg-zinc-700 animate-pulse"></div>
       </div>
     );
   }
@@ -121,7 +117,7 @@ export default function ChallengePage() {
         </div>
         <div className="w-24 flex justify-end">
           <button 
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/')}
             className="text-sm text-zinc-600 hover:text-zinc-300 transition-colors cursor-pointer"
           >
             Cancel
@@ -133,7 +129,10 @@ export default function ChallengePage() {
         {currentQuestion && (
           <QuestionCard 
             question={currentQuestion} 
-            onCorrect={handleCorrectAnswer} 
+            onCorrect={handleCorrectAnswer}
+            userId={user?.uid}
+            currentIndex={currentIndex}
+            totalQuestions={questions.length}
           />
         )}
       </main>

@@ -6,6 +6,7 @@ import { db } from '@/lib/firebase';
 export interface QuestionResponse {
   id: string;
   sentence: string;
+  answerLength: number;
 }
 
 export async function GET(request: NextRequest) {
@@ -27,10 +28,11 @@ export async function GET(request: NextRequest) {
     // Get daily questions from database excluding solved ones
     const questions = await getDailyQuestionsFromDb(solvedQuestionIds);
     
-    // Remove answers from response - only send id and sentence
+    // Remove answers from response - only send id, sentence, and answerLength
     const questionsWithoutAnswers: QuestionResponse[] = questions.map(q => ({
       id: q.id,
-      sentence: q.sentence
+      sentence: q.sentence,
+      answerLength: q.answer.length
     }));
     
     return NextResponse.json({ questions: questionsWithoutAnswers, solvedCount: solvedQuestionIds.length });
