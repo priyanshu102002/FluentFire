@@ -20,6 +20,7 @@ export function QuestionCard({ question, onCorrect, userId, currentIndex = 0, to
   const [input, setInput] = useState('');
   const [hintLevel, setHintLevel] = useState(0);
   const [status, setStatus] = useState<'idle' | 'correct' | 'incorrect' | 'checking'>('idle');
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const answerLength = question.answerLength;
 
@@ -114,6 +115,8 @@ export function QuestionCard({ question, onCorrect, userId, currentIndex = 0, to
             value={input}
             onChange={(e) => setInput(e.target.value.slice(0, answerLength))}
             onKeyDown={handleKeyDown}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             disabled={status === 'correct' || status === 'checking'}
             maxLength={answerLength}
             className="absolute opacity-0 w-0 h-0"
@@ -130,9 +133,11 @@ export function QuestionCard({ question, onCorrect, userId, currentIndex = 0, to
                 className={`w-10 h-12 flex items-center justify-center border-2 rounded-md text-lg font-semibold transition-all cursor-text
                   ${status === 'correct' ? 'border-green-500 bg-green-500/10 text-green-400' : ''}
                   ${status === 'incorrect' ? 'border-red-500 bg-red-500/10 text-red-400' : ''}
-                  ${status === 'idle' && index < input.length ? 'border-zinc-500 bg-zinc-900/50 text-zinc-100' : ''}
-                  ${status === 'idle' && index >= input.length ? 'border-zinc-700 bg-zinc-950' : ''}
-                  ${status === 'checking' ? 'border-zinc-600 bg-zinc-900/30 text-zinc-400' : ''}
+                  ${status === 'idle' && isFocused && index < input.length ? 'border-white bg-white/15 text-white' : ''}
+                  ${status === 'idle' && isFocused && index >= input.length ? 'border-white/60 bg-white/8' : ''}
+                  ${status === 'idle' && !isFocused && index < input.length ? 'border-white/40 bg-black/40 text-white' : ''}
+                  ${status === 'idle' && !isFocused && index >= input.length ? 'border-white/20 bg-black/60' : ''}
+                  ${status === 'checking' ? 'border-white/30 bg-black/50 text-white/60' : ''}
                 `}
               >
                 {input[index] ? input[index].toUpperCase() : ''}

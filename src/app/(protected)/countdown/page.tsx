@@ -119,7 +119,7 @@ export default function CountdownPage() {
                 {profile?.streak || 0}
               </span>
             </div>
-            <p className="text-xs text-zinc-600">day streak</p>
+            <p className="text-xs text-zinc-600">hard streak</p>
           </div>
 
           {/* Countdown Section */}

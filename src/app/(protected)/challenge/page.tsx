@@ -1,16 +1,23 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import { getDailyQuestionsFromAPI, Question } from '@/lib/questions-client';
-import { getDailyProgress, initializeDailyProgress } from '@/lib/progress-client';
-import { getUserProfile, updateUserStreak, createUserProfile } from '@/lib/user-client';
-import { QuestionCard } from '@/components/QuestionCard';
-import { ProgressBar } from '@/components/ProgressBar';
-import { motion } from 'framer-motion';
-import { Flame } from 'lucide-react';
-import type { UserProfile } from '@/app/api/user/route';
+import React, { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { getDailyQuestionsFromAPI, Question } from "@/lib/questions-client";
+import {
+  getDailyProgress,
+  initializeDailyProgress,
+} from "@/lib/progress-client";
+import {
+  getUserProfile,
+  updateUserStreak,
+  createUserProfile,
+} from "@/lib/user-client";
+import { QuestionCard } from "@/components/QuestionCard";
+import { ProgressBar } from "@/components/ProgressBar";
+import { motion } from "framer-motion";
+import { Flame } from "lucide-react";
+import type { UserProfile } from "@/app/api/user/route";
 
 export default function ChallengePage() {
   const { user } = useAuth();
@@ -21,19 +28,21 @@ export default function ChallengePage() {
   const [completed, setCompleted] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
+  console.log("iser", user)
+
   useEffect(() => {
     async function initChallenge() {
       if (!user) return;
-      
+
       try {
         let userProfile = await getUserProfile(user.uid);
-        
+
         // Create profile if it doesn't exist
         if (!userProfile) {
-          await createUserProfile(user.uid, user.email || '');
+          await createUserProfile(user.uid, user.email || "");
           userProfile = await getUserProfile(user.uid);
         }
-        
+
         setProfile(userProfile);
 
         const dailyQuestions = await getDailyQuestionsFromAPI(user.uid);
@@ -61,7 +70,7 @@ export default function ChallengePage() {
 
   useEffect(() => {
     if (completed) {
-      router.push('/countdown');
+      router.push("/countdown");
     }
   }, [completed, router]);
 
@@ -108,7 +117,7 @@ export default function ChallengePage() {
       <header className="px-6 py-8 flex items-center justify-between max-w-4xl mx-auto w-full">
         <div className="flex items-center space-x-2 text-zinc-400 w-24">
           <Flame className="w-4 h-4 text-orange-500/80" />
-          <span className="text-sm font-medium">{profile?.streak || 0}</span>
+          <span className="text-sm font-medium">{profile?.streak || 0} Day</span>
         </div>
         <div className="flex-1 flex justify-center">
           <div className="w-full max-w-xs">
@@ -116,19 +125,20 @@ export default function ChallengePage() {
           </div>
         </div>
         <div className="w-24 flex justify-end">
-          <button 
-            onClick={() => router.push('/')}
-            className="text-sm text-zinc-600 hover:text-zinc-300 transition-colors cursor-pointer"
-          >
-            Cancel
-          </button>
+          {user?.photoURL && (
+            <img 
+              src={user.photoURL} 
+              alt={user.displayName || 'User avatar'}
+              className="w-6 h-6 rounded-full"
+            />
+          )}
         </div>
       </header>
 
       <main className="flex-1 flex items-center justify-center p-6">
         {currentQuestion && (
-          <QuestionCard 
-            question={currentQuestion} 
+          <QuestionCard
+            question={currentQuestion}
             onCorrect={handleCorrectAnswer}
             userId={user?.uid}
             currentIndex={currentIndex}
