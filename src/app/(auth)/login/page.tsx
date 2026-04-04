@@ -28,7 +28,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-12 text-center">
         <div className="space-y-3">
           <h1 className="text-3xl font-light tracking-tight text-zinc-100">
-            Daily English
+            Fluent Fire
           </h1>
         </div>
 

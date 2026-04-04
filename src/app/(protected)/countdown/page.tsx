@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { getUserProfile } from "@/lib/user-client";
 import { motion } from "framer-motion";
-import { Flame } from "lucide-react";
+import { Flame, User } from "lucide-react";
 import type { UserProfile } from "@/app/api/user/route";
 
 export default function CountdownPage() {
@@ -18,6 +18,7 @@ export default function CountdownPage() {
     seconds: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -65,6 +66,17 @@ export default function CountdownPage() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setIsDropdownOpen(false);
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [isDropdownOpen]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -84,13 +96,28 @@ export default function CountdownPage() {
           <span className="text-sm font-medium">{profile?.streak || 0}</span>
         </div>
         <div className="flex-1"></div>
-        <div className="w-24 flex justify-end">
-          <button
-            onClick={handleLogout}
-            className="text-sm text-zinc-600 hover:text-zinc-300 transition-colors cursor-pointer"
-          >
-            Sign Out
-          </button>
+        <div className="w-24 flex justify-end relative">
+          {user && (
+            <>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-10 h-10 rounded-full border border-white/20 hover:border-white/40 transition-colors overflow-hidden cursor-pointer flex items-center justify-center bg-white/10 text-white font-semibold text-sm"
+              >
+                <User />
+              </button>
+              
+              {isDropdownOpen && (
+                <div className="absolute top-8 right-0 bg-black/90 border border-white/20 rounded-md shadow-lg z-10">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors text-left whitespace-nowrap"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </header>
 

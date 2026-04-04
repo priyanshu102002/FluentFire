@@ -16,19 +16,18 @@ import {
 import { QuestionCard } from "@/components/QuestionCard";
 import { ProgressBar } from "@/components/ProgressBar";
 import { motion } from "framer-motion";
-import { Flame } from "lucide-react";
+import { Flame, User } from "lucide-react";
 import type { UserProfile } from "@/app/api/user/route";
 
 export default function ChallengePage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [completed, setCompleted] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-
-  console.log("iser", user)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     async function initChallenge() {
@@ -74,6 +73,17 @@ export default function ChallengePage() {
     }
   }, [completed, router]);
 
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setIsDropdownOpen(false);
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [isDropdownOpen]);
+
   const handleCorrectAnswer = async () => {
     if (!user) return;
 
@@ -91,6 +101,15 @@ export default function ChallengePage() {
       }
     } catch (error) {
       console.error("Error updating challenge state", error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
     }
   };
 
@@ -124,13 +143,27 @@ export default function ChallengePage() {
             <ProgressBar current={currentIndex + 1} total={questions.length} />
           </div>
         </div>
-        <div className="w-24 flex justify-end">
-          {user?.photoURL && (
-            <img 
-              src={user.photoURL} 
-              alt={user.displayName || 'User avatar'}
-              className="w-6 h-6 rounded-full"
-            />
+        <div className="w-24 flex justify-end relative">
+          {user && (
+            <>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-10 h-10 rounded-full border border-white/20 hover:border-white/40 transition-colors overflow-hidden flex items-center justify-center bg-white/10 text-white font-semibold text-sm"
+              >
+                <User />
+              </button>
+              
+              {isDropdownOpen && (
+                <div className="absolute top-8 right-0 bg-black/90 border border-white/20 rounded-md shadow-lg z-10">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors text-left"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </header>
